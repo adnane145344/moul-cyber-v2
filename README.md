@@ -132,10 +132,14 @@ com.adnane.moulcyber
 │   ├── catalog
 │   ├── error
 │   ├── health
+│   ├── rental
+│   ├── review
 │   └── user
 ├── application
 │   ├── auth
 │   ├── catalog
+│   ├── rental
+│   ├── review
 │   └── user
 ├── configuration
 │   └── security
@@ -155,9 +159,9 @@ com.adnane.moulcyber
 └── MoulCyberApplication.java
 ```
 
-Application services orchestrate authentication, current-user, and catalog
-query use cases. Spring Data repositories are grouped by feature under
-`infra/persistence`.
+Application services orchestrate authentication, current-user, catalog,
+rental, return, and review use cases. Spring Data repositories are grouped by
+feature under `infra/persistence`.
 
 The domain layer owns the business behavior and does not depend on the API,
 configuration, or infrastructure layers. Its entities include Jakarta
@@ -299,6 +303,112 @@ Detail responses also include the description:
 Games without an available copy remain visible with a count of zero. An unknown
 identifier returns HTTP `404` with the standard API error format.
 
+## Rentals
+
+Authenticated clients can rent one available copy of a game:
+
+```bash
+curl -X POST http://localhost:8080/api/rentals \
+  -H "Authorization: Bearer <client-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"gameId": 1}'
+```
+
+A rental lasts seven days. Creation, copy selection, and the transition from
+`AVAILABLE` to `RENTED` happen in one transaction. The selected copy is locked
+while the rental is created so concurrent requests cannot rent it twice.
+
+Successful creation returns HTTP `201`:
+
+```json
+{
+  "id": 10,
+  "status": "ACTIVE",
+  "startDate": "2026-06-22",
+  "dueDate": "2026-06-29",
+  "items": [
+    {
+      "id": 22,
+      "gameId": 1,
+      "gameTitle": "Cyber Quest",
+      "copyId": 4,
+      "status": "ACTIVE",
+      "rentalPrice": 5.00,
+      "processedDate": null,
+      "lateFee": 0.00
+    }
+  ]
+}
+```
+
+If no copy is available, the API returns HTTP `409`.
+
+Read the current user's rentals and one owned rental:
+
+```bash
+curl http://localhost:8080/api/rentals/me \
+  -H "Authorization: Bearer <client-jwt>"
+
+curl http://localhost:8080/api/rentals/10 \
+  -H "Authorization: Bearer <client-jwt>"
+```
+
+Users cannot read another user's rental. Such requests return HTTP `404`.
+
+## Returns and inventory outcomes
+
+Administrators process active rental items:
+
+```bash
+curl -X POST http://localhost:8080/api/admin/rental-items/22/return \
+  -H "Authorization: Bearer <admin-jwt>"
+
+curl -X POST http://localhost:8080/api/admin/rental-items/22/mark-lost \
+  -H "Authorization: Bearer <admin-jwt>"
+
+curl -X POST http://localhost:8080/api/admin/rental-items/22/mark-damaged \
+  -H "Authorization: Bearer <admin-jwt>"
+```
+
+Rental item statuses are:
+
+```text
+ACTIVE
+RETURNED
+LATE_RETURNED
+LOST
+DAMAGED
+```
+
+A normal or late return makes the physical copy `AVAILABLE`. A lost or damaged
+item keeps its copy unavailable. Late fees are `2.00` for each day after the
+due date. Completed items cannot be processed again.
+
+## Reviews
+
+Reviews are publicly readable:
+
+```bash
+curl http://localhost:8080/api/games/1/reviews
+```
+
+An authenticated client may create one review after completing a rental of the
+game:
+
+```bash
+curl -X POST http://localhost:8080/api/games/1/reviews \
+  -H "Authorization: Bearer <client-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": 5,
+    "comment": "Excellent cooperative game."
+  }'
+```
+
+Ratings must be between `1` and `5`. Comments are required and limited to
+1,000 characters. A user without a completed rental receives HTTP `403`, while
+a duplicate review receives HTTP `409`.
+
 ## Core domain
 
 The core domain is implemented with plain Java objects and does not depend on
@@ -321,14 +431,15 @@ Only an available copy can be rented. Returning a rented copy makes it
 ### Rentals
 
 A `Rental` belongs to a user and contains physical game copies through
-`RentalItem` objects.
+`RentalItem` objects. Each item stores the rental price at creation time so
+later catalog changes do not alter rental history.
 
 - The start date and due date are required.
 - The due date must be after the start date.
-- The actual return date cannot be before the start date.
+- Processing dates cannot be before the rental start date.
 - Active rentals become overdue after their due date.
-- A returned rental is late when its return date is after its due date.
-- The late fee is `2.00` for each late day.
+- A rental is completed when none of its items remain active.
+- The late fee is `2.00` for each late day and is stored per item.
 
 Dates use `LocalDate`, and monetary calculations use `BigDecimal` to keep
 business calculations deterministic and precise.
@@ -339,11 +450,11 @@ A `Review` links one user to one game.
 
 - Ratings must be between `1` and `5`.
 - Comments cannot be null, empty, or blank.
+- Comments cannot exceed 1,000 characters.
 - Surrounding whitespace is removed from comments.
 
-Review eligibility and the one-review-per-user-and-game constraint will be
-enforced when rental history and persistence are connected to application use
-cases.
+Review eligibility is based on completed rental items. A database constraint
+also enforces one review per user and game.
 
 ## Testing approach
 
@@ -355,8 +466,16 @@ RentalTest
 ReviewTest
 ```
 
-These tests run without a database or Spring application context. The existing
-web test separately verifies the public health endpoint.
+Application services are covered independently:
+
+```text
+RentalItemProcessingServiceTest
+RentalServiceTest
+ReviewServiceTest
+```
+
+These tests run without a database or Spring application context. HTTP tests
+verify authentication, authorization, JSON contracts, and error responses.
 
 Repository tests use an in-memory H2 database configured in PostgreSQL
 compatibility mode. They verify generated identifiers, entity relationships,
@@ -394,6 +513,7 @@ UserRepository
 GameRepository
 GameCopyRepository
 RentalRepository
+RentalItemRepository
 ReviewRepository
 ```
 
@@ -428,5 +548,4 @@ docker compose exec postgres psql -U moul_cyber -d moul_cyber -c "\dt"
 
 - Add and update games.
 - Manage physical inventory.
-- View current and overdue rentals.
 - Record returned, lost, or damaged copies.
