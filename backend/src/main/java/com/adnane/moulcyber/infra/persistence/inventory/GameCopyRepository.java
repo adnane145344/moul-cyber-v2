@@ -23,6 +23,8 @@ public interface GameCopyRepository extends JpaRepository<GameCopy, Long> {
 
     long countByGameIdAndStatus(Long gameId, GameCopyStatus status);
 
+    long countByGameId(Long gameId);
+
     @Query("""
             select copy.game.id as gameId, count(copy.id) as availableCopies
             from GameCopy copy
@@ -32,4 +34,11 @@ public interface GameCopyRepository extends JpaRepository<GameCopy, Long> {
     List<GameAvailabilityCount> countAvailabilityByGameIds(
             @Param("gameIds") Collection<Long> gameIds,
             @Param("status") GameCopyStatus status);
+
+    @Query("""
+            select copy.game.id as gameId, copy.status as status, count(copy.id) as copyCount
+            from GameCopy copy
+            group by copy.game.id, copy.status
+            """)
+    List<GameCopyStatusCount> countCopiesGroupedByGameAndStatus();
 }

@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -85,6 +86,13 @@ public class GlobalExceptionHandler {
             ReviewEligibilityException exception,
             HttpServletRequest request) {
         return error(HttpStatus.FORBIDDEN, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ApiError> handleInvalidParameter(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "Invalid request parameter.", request, Map.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

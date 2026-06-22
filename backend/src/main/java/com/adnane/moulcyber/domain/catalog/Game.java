@@ -36,9 +36,15 @@ public class Game {
 
     public Game(Long id, String title, String description, BigDecimal rentalPrice) {
         this.id = id;
-        this.title = requireText(title, "Title");
+        this.title = requireTitle(title);
         this.description = requireText(description, "Description");
-        this.rentalPrice = requireNonNegative(rentalPrice);
+        this.rentalPrice = requirePositive(rentalPrice);
+    }
+
+    public void updateDetails(String title, String description, BigDecimal rentalPrice) {
+        this.title = requireTitle(title);
+        this.description = requireText(description, "Description");
+        this.rentalPrice = requirePositive(rentalPrice);
     }
 
     public Long getId() {
@@ -64,10 +70,18 @@ public class Game {
         return value.trim();
     }
 
-    private static BigDecimal requireNonNegative(BigDecimal value) {
+    private static String requireTitle(String value) {
+        String title = requireText(value, "Title");
+        if (title.length() > 255) {
+            throw new IllegalArgumentException("Title must not exceed 255 characters.");
+        }
+        return title;
+    }
+
+    private static BigDecimal requirePositive(BigDecimal value) {
         Objects.requireNonNull(value, "Rental price is required.");
-        if (value.signum() < 0) {
-            throw new IllegalArgumentException("Rental price cannot be negative.");
+        if (value.signum() <= 0) {
+            throw new IllegalArgumentException("Rental price must be positive.");
         }
         return value;
     }
