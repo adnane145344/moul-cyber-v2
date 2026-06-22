@@ -1,46 +1,135 @@
 # Moul Cyber
 
-Moul Cyber is a video game rental and inventory management platform.
+Moul Cyber is a video game rental and inventory management platform. It is
+designed to manage a game catalog, physical copies, customer rentals, returns,
+reviews, and administrative inventory operations.
 
-The application manages a game catalog, physical copies, customer rentals,
-returns, reviews, and administrative inventory operations.
-
-## Requirements
-
-- Java 21
-- Maven
-- PostgreSQL
-- Docker and Docker Compose for the local database
+The repository currently provides a tested Spring Boot backend foundation,
+PostgreSQL development environment, modular package structure, and public
+health endpoint.
 
 ## Technology
 
-- Spring Boot
+- Java 21
+- Spring Boot 3.5
 - Spring Web
-- Spring Security and JWT
 - Spring Data JPA and Hibernate
-- PostgreSQL
+- Spring Security
+- PostgreSQL 17
 - JUnit 5 and Mockito
+- Maven 3.9
+- Docker Compose
+
+## Requirements
+
+- JDK 21
+- Maven 3.9 or later
+- Docker Desktop or another Docker environment with Compose support
+
+Verify the local tools before starting:
+
+```bash
+java -version
+mvn -version
+docker --version
+docker compose version
+```
 
 ## Running the application
 
-The application setup and startup commands will be added when the initial
-backend structure is available.
-
-## Running the tests
-
-The test command will be:
+Start PostgreSQL:
 
 ```bash
-mvn test
+cd backend
+docker compose up -d
 ```
 
-## Features
+Start the backend from the same directory:
+
+```bash
+mvn spring-boot:run
+```
+
+The API is available at `http://localhost:8080`.
+
+Check its availability:
+
+```bash
+curl http://localhost:8080/api/health
+```
+
+Expected response:
+
+```json
+{"status":"UP"}
+```
+
+Stop the database when it is no longer needed:
+
+```bash
+docker compose down
+```
+
+The PostgreSQL data is stored in the `postgres_data` Docker volume and is
+preserved when the container stops.
+
+## Tests and build
+
+Run the test suite:
+
+```bash
+cd backend
+mvn clean test
+```
+
+Build the executable JAR:
+
+```bash
+mvn clean package
+```
+
+The generated artifact is written to `backend/target/`.
+
+## Configuration
+
+The application reads its database and server settings from environment
+variables. Each variable has a local development default:
+
+| Variable | Default |
+| --- | --- |
+| `DB_HOST` | `localhost` |
+| `DB_PORT` | `5432` |
+| `DB_NAME` | `moul_cyber` |
+| `DB_USERNAME` | `moul_cyber` |
+| `DB_PASSWORD` | `moul_cyber` |
+| `SERVER_PORT` | `8080` |
+
+## Backend structure
+
+The backend uses feature-oriented packages under `com.adnane.moulcyber`:
+
+| Package | Responsibility |
+| --- | --- |
+| `auth` | Authentication use cases |
+| `security` | Security and access-control configuration |
+| `user` | User accounts and customer profiles |
+| `catalog` | Video game catalog |
+| `inventory` | Physical copies and inventory |
+| `rental` | Rentals, returns, and late fees |
+| `review` | Customer reviews |
+| `admin` | Administrative capabilities |
+| `shared` | Shared technical components |
+
+The health endpoint is public. Other API routes require authentication by
+default. Authentication mechanisms and business features will be introduced as
+their corresponding modules are implemented.
+
+## Planned capabilities
 
 ### Customer
 
 - Create an account and sign in.
-- Browse the game catalog.
-- View game details and availability.
+- Browse the game catalog and view availability.
 - Rent an available physical copy.
 - View active rentals and rental history.
 - Review a game after renting it.
@@ -48,17 +137,6 @@ mvn test
 ### Administrator
 
 - Add and update games.
-- Add physical copies to the inventory.
+- Manage physical inventory.
 - View current and overdue rentals.
-- Record returned copies.
-- Track unavailable, lost, and damaged copies.
-
-## Business rules
-
-- Only authenticated customers can rent games.
-- Only administrators can access inventory management operations.
-- An unavailable copy cannot be rented.
-- Rentals have a start date and an expected return date.
-- Late returns generate additional fees.
-- A customer can review a game only after renting it.
-- A customer can submit only one review per game.
+- Record returned, lost, or damaged copies.
