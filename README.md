@@ -4,9 +4,9 @@ Moul Cyber is a video game rental and inventory management platform. It is
 designed to manage a game catalog, physical copies, customer rentals, returns,
 reviews, and administrative inventory operations.
 
-The repository currently provides a tested Spring Boot backend foundation,
-PostgreSQL development environment, layered package structure, and public
-health endpoint.
+The repository provides a tested Spring Boot backend, PostgreSQL development
+environment, layered package structure, stateless authentication, customer
+rental workflows, and administrative inventory operations.
 
 ## Technology
 
@@ -160,8 +160,8 @@ com.adnane.moulcyber
 ```
 
 Application services orchestrate authentication, current-user, catalog,
-rental, return, and review use cases. Spring Data repositories are grouped by
-feature under `infra/persistence`.
+rental, return, review, profile, and administrative use cases. Spring Data
+repositories are grouped by feature under `infra/persistence`.
 
 The domain layer owns the business behavior and does not depend on the API,
 configuration, or infrastructure layers. Its entities include Jakarta
@@ -242,11 +242,45 @@ Access rules:
 | `/api/auth/login` | Public |
 | `/api/games/**` | Public |
 | `/api/users/me` | Authenticated |
+| `/api/users/me/password` | Authenticated |
 | `/api/rentals/**` | Authenticated |
 | `/api/admin/**` | `ADMIN` only |
 
 Validation errors return HTTP `400`, duplicate emails return `409`, invalid
 credentials or tokens return `401`, and insufficient permissions return `403`.
+
+## User profile
+
+Authenticated users can update their first and last names:
+
+```bash
+curl -X PUT http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer <client-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Adnane",
+    "lastName": "Lardi"
+  }'
+```
+
+Names are trimmed, required, and limited to 100 characters. Email addresses and
+roles cannot be changed through this endpoint.
+
+Users can change their password after confirming the current password:
+
+```bash
+curl -X PUT http://localhost:8080/api/users/me/password \
+  -H "Authorization: Bearer <client-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currentPassword": "CurrentPassword1!",
+    "newPassword": "NewPassword1!"
+  }'
+```
+
+The new password must contain between 8 and 72 characters and must differ from
+the current password. A successful change returns HTTP `204`. Existing JWTs
+remain valid until their normal expiration time.
 
 ## Public catalog
 
@@ -383,6 +417,76 @@ DAMAGED
 A normal or late return makes the physical copy `AVAILABLE`. A lost or damaged
 item keeps its copy unavailable. Late fees are `2.00` for each day after the
 due date. Completed items cannot be processed again.
+
+## Administration
+
+All administrative endpoints require an `ADMIN` bearer token.
+
+Create a game:
+
+```bash
+curl -X POST http://localhost:8080/api/admin/games \
+  -H "Authorization: Bearer <admin-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Cyber Quest",
+    "description": "A cooperative science-fiction adventure.",
+    "rentalPrice": 5.00
+  }'
+```
+
+Update an existing game:
+
+```bash
+curl -X PUT http://localhost:8080/api/admin/games/1 \
+  -H "Authorization: Bearer <admin-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Cyber Quest Deluxe",
+    "description": "An expanded cooperative adventure.",
+    "rentalPrice": 7.50
+  }'
+```
+
+Titles and descriptions are required. Titles are limited to 255 characters,
+and rental prices must be strictly positive.
+
+Add between 1 and 100 available physical copies:
+
+```bash
+curl -X POST http://localhost:8080/api/admin/games/1/copies \
+  -H "Authorization: Bearer <admin-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"quantity": 3}'
+```
+
+Read the inventory summary:
+
+```bash
+curl http://localhost:8080/api/admin/inventory \
+  -H "Authorization: Bearer <admin-jwt>"
+```
+
+The response contains one entry per game, including games without physical
+copies. Counts are grouped by `AVAILABLE`, `RENTED`, `LOST`, and `DAMAGED`, and
+results are sorted by title and identifier.
+
+Administrators can inspect all rentals or filter them:
+
+```bash
+curl http://localhost:8080/api/admin/rentals \
+  -H "Authorization: Bearer <admin-jwt>"
+
+curl "http://localhost:8080/api/admin/rentals?status=OVERDUE" \
+  -H "Authorization: Bearer <admin-jwt>"
+
+curl http://localhost:8080/api/admin/rentals/10 \
+  -H "Authorization: Bearer <admin-jwt>"
+```
+
+Supported filters are `ACTIVE`, `OVERDUE`, and `COMPLETED`. Overdue state is
+calculated from the current date and the rental due date. Results are sorted by
+start date and identifier in descending order.
 
 ## Reviews
 
@@ -533,19 +637,3 @@ cd backend
 docker compose up -d
 docker compose exec postgres psql -U moul_cyber -d moul_cyber -c "\dt"
 ```
-
-## Planned capabilities
-
-### Customer
-
-- Create an account and sign in.
-- Browse the game catalog and view availability.
-- Rent an available physical copy.
-- View active rentals and rental history.
-- Review a game after renting it.
-
-### Administrator
-
-- Add and update games.
-- Manage physical inventory.
-- Record returned, lost, or damaged copies.
