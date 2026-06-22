@@ -1,7 +1,7 @@
 package com.adnane.moulcyber.configuration.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.DispatcherType;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,9 +15,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     private final JwtService jwtService;
+    private final SecurityErrorWriter securityErrorWriter;
 
-    public SecurityConfiguration(JwtService jwtService) {
+    public SecurityConfiguration(
+            JwtService jwtService,
+            ObjectMapper objectMapper) {
         this.jwtService = jwtService;
+        this.securityErrorWriter = new SecurityErrorWriter(objectMapper);
     }
 
     @Bean
@@ -33,9 +37,19 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) ->
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                                securityErrorWriter.write(
+                                        request,
+                                        response,
+                                        401,
+                                        "Unauthorized",
+                                        "Authentication is required."))
                         .accessDeniedHandler((request, response, exception) ->
-                                response.sendError(HttpServletResponse.SC_FORBIDDEN)))
+                                securityErrorWriter.write(
+                                        request,
+                                        response,
+                                        403,
+                                        "Forbidden",
+                                        "Access is denied.")))
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtService),
                         UsernamePasswordAuthenticationFilter.class)
