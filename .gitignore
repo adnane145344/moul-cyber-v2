@@ -1,0 +1,23 @@
+target/
+.idea/
+.vscode/
+*.iml
+.env
+*.log
+node_modules/
+dist/
+build/
+__pycache__/
+.venv/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Java and Maven
+*.class
+.mvn/timing.properties
+
+# Test and coverage reports
+coverage/
+*.exec
