@@ -1,6 +1,8 @@
 spring:
   application:
     name: moul-cyber
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:moul_cyber}
     username: ${DB_USERNAME:moul_cyber}

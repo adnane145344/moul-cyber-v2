@@ -1,6 +1,7 @@
 package com.adnane.moulcyber.api.user;
 
 import com.adnane.moulcyber.application.user.CurrentUserService;
+import com.adnane.moulcyber.application.user.CurrentUserResponse;
 import com.adnane.moulcyber.configuration.security.UserPrincipal;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;

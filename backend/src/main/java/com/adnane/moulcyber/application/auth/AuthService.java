@@ -2,9 +2,6 @@ package com.adnane.moulcyber.application.auth;
 
 import java.util.Locale;
 
-import com.adnane.moulcyber.api.auth.AuthResponse;
-import com.adnane.moulcyber.api.auth.LoginRequest;
-import com.adnane.moulcyber.api.auth.RegisterRequest;
 import com.adnane.moulcyber.configuration.security.JwtService;
 import com.adnane.moulcyber.domain.user.Role;
 import com.adnane.moulcyber.domain.user.User;

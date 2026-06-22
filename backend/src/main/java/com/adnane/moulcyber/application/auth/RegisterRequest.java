@@ -1,4 +1,4 @@
-package com.adnane.moulcyber.api.auth;
+package com.adnane.moulcyber.application.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

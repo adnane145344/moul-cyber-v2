@@ -1,6 +1,9 @@
 package com.adnane.moulcyber.api.auth;
 
 import com.adnane.moulcyber.application.auth.AuthService;
+import com.adnane.moulcyber.application.auth.AuthResponse;
+import com.adnane.moulcyber.application.auth.LoginRequest;
+import com.adnane.moulcyber.application.auth.RegisterRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;

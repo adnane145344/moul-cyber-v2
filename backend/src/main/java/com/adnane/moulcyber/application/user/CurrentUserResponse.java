@@ -1,4 +1,4 @@
-package com.adnane.moulcyber.api.user;
+package com.adnane.moulcyber.application.user;
 
 import com.adnane.moulcyber.domain.user.Role;
 
