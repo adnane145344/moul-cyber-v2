@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.adnane.moulcyber.application.auth.EmailAlreadyUsedException;
 import com.adnane.moulcyber.application.auth.InvalidCredentialsException;
+import com.adnane.moulcyber.application.catalog.GameNotFoundException;
 import com.adnane.moulcyber.application.user.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,13 @@ public class GlobalExceptionHandler {
             RuntimeException exception,
             HttpServletRequest request) {
         return error(HttpStatus.UNAUTHORIZED, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler(GameNotFoundException.class)
+    ResponseEntity<ApiError> handleGameNotFound(
+            GameNotFoundException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

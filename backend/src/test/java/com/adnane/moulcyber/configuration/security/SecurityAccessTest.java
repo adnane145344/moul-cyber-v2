@@ -70,11 +70,6 @@ class SecurityAccessTest {
     @RestController
     static class TestEndpoints {
 
-        @GetMapping("/api/games")
-        String games() {
-            return "games";
-        }
-
         @GetMapping("/api/rentals")
         String rentals() {
             return "rentals";
