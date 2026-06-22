@@ -124,6 +124,68 @@ The health endpoint is public. Other API routes require authentication by
 default. Authentication mechanisms and business features will be introduced as
 their corresponding modules are implemented.
 
+## Core domain
+
+The core domain is implemented with plain Java objects and does not depend on
+Spring, HTTP controllers, or persistence infrastructure.
+
+### Game copies
+
+Each `GameCopy` belongs to a game and has one of the following statuses:
+
+```text
+AVAILABLE
+RENTED
+RETURNED
+LOST
+DAMAGED
+```
+
+Only an available copy can be rented. A rented copy can be returned, while
+rented, returned, lost, and damaged copies cannot be rented again. A returned
+copy remains in the `RETURNED` state until a separate inventory operation makes
+it available again.
+
+### Rentals
+
+A `Rental` belongs to a user and contains physical game copies through
+`RentalItem` objects.
+
+- The start date and due date are required.
+- The due date must be after the start date.
+- The actual return date cannot be before the start date.
+- Active rentals become overdue after their due date.
+- A returned rental is late when its return date is after its due date.
+- The late fee is `2.00` for each late day.
+
+Dates use `LocalDate`, and monetary calculations use `BigDecimal` to keep
+business calculations deterministic and precise.
+
+### Reviews
+
+A `Review` links one user to one game.
+
+- Ratings must be between `1` and `5`.
+- Comments cannot be null, empty, or blank.
+- Surrounding whitespace is removed from comments.
+
+Review eligibility and the one-review-per-user-and-game constraint will be
+enforced when rental history and persistence are connected to application use
+cases.
+
+## Testing approach
+
+Domain rules are covered by focused unit tests:
+
+```text
+GameCopyTest
+RentalTest
+ReviewTest
+```
+
+These tests run without a database or Spring application context. The existing
+web test separately verifies the public health endpoint.
+
 ## Planned capabilities
 
 ### Customer
