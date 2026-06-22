@@ -8,18 +8,47 @@ import java.util.List;
 import java.util.Objects;
 
 import com.adnane.moulcyber.domain.user.User;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "rentals")
 public class Rental {
 
     private static final BigDecimal DAILY_LATE_FEE = new BigDecimal("2.00");
     private static final BigDecimal NO_LATE_FEE = new BigDecimal("0.00");
 
-    private final Long id;
-    private final User user;
-    private final LocalDate startDate;
-    private final LocalDate dueDate;
-    private final List<RentalItem> items = new ArrayList<>();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "due_date", nullable = false)
+    private LocalDate dueDate;
+
+    @Column(name = "returned_date")
     private LocalDate returnedDate;
+
+    @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RentalItem> items = new ArrayList<>();
+
+    protected Rental() {
+    }
 
     public Rental(User user, LocalDate startDate, LocalDate dueDate) {
         this(null, user, startDate, dueDate);
@@ -37,7 +66,9 @@ public class Rental {
     }
 
     public void addItem(RentalItem item) {
-        items.add(Objects.requireNonNull(item, "Rental item is required."));
+        RentalItem validatedItem = Objects.requireNonNull(item, "Rental item is required.");
+        validatedItem.attachTo(this);
+        items.add(validatedItem);
     }
 
     public void returnOn(LocalDate returnDate) {

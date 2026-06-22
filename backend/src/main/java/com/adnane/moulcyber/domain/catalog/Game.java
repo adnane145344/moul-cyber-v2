@@ -3,12 +3,32 @@ package com.adnane.moulcyber.domain.catalog;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "games")
 public class Game {
 
-    private final Long id;
-    private final String title;
-    private final String description;
-    private final BigDecimal rentalPrice;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "rental_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal rentalPrice;
+
+    protected Game() {
+    }
 
     public Game(String title, String description, BigDecimal rentalPrice) {
         this(null, title, description, rentalPrice);
