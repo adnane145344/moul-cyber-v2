@@ -1,6 +1,7 @@
 package com.adnane.moulcyber.domain.review;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import com.adnane.moulcyber.domain.catalog.Game;
 import com.adnane.moulcyber.domain.user.Role;
@@ -71,5 +72,22 @@ class ReviewTest {
     void reviewRequiresAGame() {
         assertThatThrownBy(() -> new Review(customer, null, 4, "Great game."))
                 .isInstanceOf(InvalidReviewException.class);
+    }
+
+    @Test
+    void reviewCommentCannotExceedOneThousandCharacters() {
+        assertThatThrownBy(() -> new Review(
+                customer, game, 4, "x".repeat(1001)))
+                .isInstanceOf(InvalidReviewException.class);
+    }
+
+    @Test
+    void reviewKeepsCreationTimestamp() {
+        Instant createdAt = Instant.parse("2026-06-22T15:30:00Z");
+
+        Review review = new Review(
+                1L, customer, game, 5, "Excellent.", createdAt);
+
+        assertThat(review.getCreatedAt()).isEqualTo(createdAt);
     }
 }

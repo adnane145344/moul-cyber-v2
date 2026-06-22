@@ -12,6 +12,8 @@ import com.adnane.moulcyber.application.rental.RentalNotFoundException;
 import com.adnane.moulcyber.application.rental.RentalItemAlreadyProcessedException;
 import com.adnane.moulcyber.application.rental.RentalItemNotFoundException;
 import com.adnane.moulcyber.application.user.UserNotFoundException;
+import com.adnane.moulcyber.application.review.DuplicateReviewException;
+import com.adnane.moulcyber.application.review.ReviewEligibilityException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +71,20 @@ public class GlobalExceptionHandler {
             RentalItemAlreadyProcessedException exception,
             HttpServletRequest request) {
         return error(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler(DuplicateReviewException.class)
+    ResponseEntity<ApiError> handleDuplicateReview(
+            DuplicateReviewException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler(ReviewEligibilityException.class)
+    ResponseEntity<ApiError> handleReviewEligibility(
+            ReviewEligibilityException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.FORBIDDEN, exception.getMessage(), request, Map.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

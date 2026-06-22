@@ -9,5 +9,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     boolean existsByUserIdAndGameId(Long userId, Long gameId);
 
-    List<Review> findByGameId(Long gameId);
+    List<Review> findByGameIdOrderByCreatedAtDescIdDesc(Long gameId);
 }

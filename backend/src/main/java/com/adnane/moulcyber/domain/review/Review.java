@@ -1,5 +1,7 @@
 package com.adnane.moulcyber.domain.review;
 
+import java.time.Instant;
+
 import com.adnane.moulcyber.domain.catalog.Game;
 import com.adnane.moulcyber.domain.user.User;
 import jakarta.persistence.Column;
@@ -39,19 +41,34 @@ public class Review {
     @Column(name = "comment_text", nullable = false, columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
     protected Review() {
     }
 
     public Review(User user, Game game, int rating, String comment) {
-        this(null, user, game, rating, comment);
+        this(null, user, game, rating, comment, Instant.now());
     }
 
     public Review(Long id, User user, Game game, int rating, String comment) {
+        this(id, user, game, rating, comment, Instant.now());
+    }
+
+    public Review(
+            Long id,
+            User user,
+            Game game,
+            int rating,
+            String comment,
+            Instant createdAt) {
         this.id = id;
         this.user = requireUser(user);
         this.game = requireGame(game);
         this.rating = requireValidRating(rating);
         this.comment = requireComment(comment);
+        this.createdAt = java.util.Objects.requireNonNull(
+                createdAt, "Review creation date is required.");
     }
 
     public Long getId() {
@@ -72,6 +89,10 @@ public class Review {
 
     public String getComment() {
         return comment;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     private static User requireUser(User user) {
@@ -99,6 +120,11 @@ public class Review {
         if (comment == null || comment.isBlank()) {
             throw new InvalidReviewException("Review comment cannot be blank.");
         }
-        return comment.trim();
+        String trimmedComment = comment.trim();
+        if (trimmedComment.length() > 1000) {
+            throw new InvalidReviewException(
+                    "Review comment must not exceed 1000 characters.");
+        }
+        return trimmedComment;
     }
 }

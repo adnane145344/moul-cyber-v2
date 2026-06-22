@@ -39,7 +39,7 @@ class ReviewRepositoryTest {
         reviewRepository.saveAndFlush(new Review(customer, game, 5, "Excellent game."));
 
         assertThat(reviewRepository.existsByUserIdAndGameId(customer.getId(), game.getId())).isTrue();
-        assertThat(reviewRepository.findByGameId(game.getId()))
+        assertThat(reviewRepository.findByGameIdOrderByCreatedAtDescIdDesc(game.getId()))
                 .singleElement()
                 .satisfies(review -> {
                     assertThat(review.getRating()).isEqualTo(5);
