@@ -92,7 +92,7 @@ class RentalRepositoryTest {
                 "Lardi",
                 "rental.customer@example.com",
                 "password-hash",
-                Role.CUSTOMER);
+                Role.CLIENT);
     }
 
     private GameCopy savedCopy() {

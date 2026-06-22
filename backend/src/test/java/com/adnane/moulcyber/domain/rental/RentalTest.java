@@ -22,7 +22,7 @@ class RentalTest {
             "Lardi",
             "adnane@example.com",
             "password-hash",
-            Role.CUSTOMER);
+            Role.CLIENT);
 
     @Test
     void rentalStartDateIsRequired() {

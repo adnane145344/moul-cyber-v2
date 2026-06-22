@@ -17,7 +17,7 @@ class ReviewTest {
             "Lardi",
             "adnane@example.com",
             "password-hash",
-            Role.CUSTOMER);
+            Role.CLIENT);
 
     private final Game game = new Game(
             "Cyber Quest",

@@ -64,7 +64,7 @@ class ReviewRepositoryTest {
                 "Lardi",
                 "review.customer@example.com",
                 "password-hash",
-                Role.CUSTOMER);
+                Role.CLIENT);
     }
 
     private Game game() {

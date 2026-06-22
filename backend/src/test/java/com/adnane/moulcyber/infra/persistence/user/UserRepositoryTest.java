@@ -29,7 +29,7 @@ class UserRepositoryTest {
                 .hasValueSatisfying(user -> {
                     assertThat(user.getFirstName()).isEqualTo("Adnane");
                     assertThat(user.getLastName()).isEqualTo("Lardi");
-                    assertThat(user.getRole()).isEqualTo(Role.CUSTOMER);
+                    assertThat(user.getRole()).isEqualTo(Role.CLIENT);
                 });
         assertThat(userRepository.existsByEmail("customer@example.com")).isTrue();
     }
@@ -43,6 +43,6 @@ class UserRepositoryTest {
     }
 
     private User customer(String email) {
-        return new User("Adnane", "Lardi", email, "password-hash", Role.CUSTOMER);
+        return new User("Adnane", "Lardi", email, "password-hash", Role.CLIENT);
     }
 }
