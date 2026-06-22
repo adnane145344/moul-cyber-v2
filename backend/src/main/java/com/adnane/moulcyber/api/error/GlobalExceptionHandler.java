@@ -9,6 +9,8 @@ import com.adnane.moulcyber.application.auth.InvalidCredentialsException;
 import com.adnane.moulcyber.application.catalog.GameNotFoundException;
 import com.adnane.moulcyber.application.rental.GameUnavailableException;
 import com.adnane.moulcyber.application.rental.RentalNotFoundException;
+import com.adnane.moulcyber.application.rental.RentalItemAlreadyProcessedException;
+import com.adnane.moulcyber.application.rental.RentalItemNotFoundException;
 import com.adnane.moulcyber.application.user.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -48,9 +50,23 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
     }
 
+    @ExceptionHandler(RentalItemNotFoundException.class)
+    ResponseEntity<ApiError> handleRentalItemNotFound(
+            RentalItemNotFoundException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
+    }
+
     @ExceptionHandler(GameUnavailableException.class)
     ResponseEntity<ApiError> handleGameUnavailable(
             GameUnavailableException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler(RentalItemAlreadyProcessedException.class)
+    ResponseEntity<ApiError> handleRentalItemAlreadyProcessed(
+            RentalItemAlreadyProcessedException exception,
             HttpServletRequest request) {
         return error(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
     }
