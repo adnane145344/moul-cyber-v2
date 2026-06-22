@@ -1,6 +1,7 @@
 package com.adnane.moulcyber.infra.persistence.inventory;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.adnane.moulcyber.domain.catalog.Game;
 import com.adnane.moulcyber.domain.inventory.GameCopy;
@@ -64,10 +65,47 @@ class GameCopyRepositoryTest {
                 .isEqualTo(GameCopyStatus.AVAILABLE);
     }
 
+    @Test
+    void groupedAvailabilityCountsOnlyAvailableCopies() {
+        Game availableGame = gameRepository.saveAndFlush(game("Available Game"));
+        Game unavailableGame = gameRepository.saveAndFlush(game("Unavailable Game"));
+        gameCopyRepository.save(new GameCopy(availableGame));
+        gameCopyRepository.save(new GameCopy(availableGame));
+        gameCopyRepository.save(copyWithStatus(availableGame, GameCopyStatus.RENTED));
+        gameCopyRepository.save(copyWithStatus(availableGame, GameCopyStatus.LOST));
+        gameCopyRepository.save(copyWithStatus(availableGame, GameCopyStatus.DAMAGED));
+        gameCopyRepository.saveAndFlush(copyWithStatus(unavailableGame, GameCopyStatus.RENTED));
+
+        assertThat(gameCopyRepository.countAvailabilityByGameIds(
+                List.of(availableGame.getId(), unavailableGame.getId()),
+                GameCopyStatus.AVAILABLE))
+                .singleElement()
+                .satisfies(count -> {
+                    assertThat(count.getGameId()).isEqualTo(availableGame.getId());
+                    assertThat(count.getAvailableCopies()).isEqualTo(2);
+                });
+    }
+
     private Game game() {
+        return game("Cyber Quest");
+    }
+
+    private Game game(String title) {
         return new Game(
-                "Cyber Quest",
+                title,
                 "A cooperative science-fiction adventure.",
                 new BigDecimal("5.00"));
+    }
+
+    private GameCopy copyWithStatus(Game game, GameCopyStatus status) {
+        GameCopy copy = new GameCopy(game);
+        switch (status) {
+            case AVAILABLE -> {
+            }
+            case RENTED -> copy.rent();
+            case LOST -> copy.markAsLost();
+            case DAMAGED -> copy.markAsDamaged();
+        }
+        return copy;
     }
 }

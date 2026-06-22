@@ -35,9 +35,22 @@ class GameRepositoryTest {
         gameRepository.save(game("Space Strategy", "4.50"));
         gameRepository.flush();
 
-        assertThat(gameRepository.findByTitleContainingIgnoreCase("CYBER"))
+        assertThat(gameRepository.findByTitleContainingIgnoreCaseOrderByTitleAscIdAsc("CYBER"))
                 .extracting(Game::getTitle)
                 .containsExactly("Cyber Quest");
+    }
+
+    @Test
+    void catalogIsSortedByTitleThenId() {
+        Game spaceStrategy = gameRepository.save(game("Space Strategy", "4.50"));
+        Game firstCyberQuest = gameRepository.save(game("Cyber Quest", "5.00"));
+        Game secondCyberQuest = gameRepository.save(game("Cyber Quest", "6.00"));
+        gameRepository.flush();
+
+        assertThat(gameRepository.findAllByOrderByTitleAscIdAsc())
+                .extracting(Game::getId)
+                .containsExactly(firstCyberQuest.getId(), secondCyberQuest.getId(),
+                        spaceStrategy.getId());
     }
 
     private Game game(String title, String price) {
