@@ -131,16 +131,24 @@ com.adnane.moulcyber
 │   ├── rental
 │   ├── review
 │   └── user
+├── infra
+│   └── persistence
+│       ├── catalog
+│       ├── inventory
+│       ├── rental
+│       ├── review
+│       └── user
 └── MoulCyberApplication.java
 ```
 
 Application services will be added under `application` when use cases are
-implemented. Spring Data repositories will be grouped by feature under
+implemented. Spring Data repositories are grouped by feature under
 `infra/persistence`.
 
-The domain layer contains plain Java and does not depend on the API,
-configuration, or infrastructure layers. Higher layers may depend on the
-domain, keeping business rules independent from framework concerns.
+The domain layer owns the business behavior and does not depend on the API,
+configuration, or infrastructure layers. Its entities include Jakarta
+Persistence metadata, while their rules remain independent from Spring and
+repository implementations. Higher layers may depend on the domain.
 
 The health endpoint is public. Other API routes require authentication by
 default. Authentication mechanisms and business features will be introduced as
@@ -207,6 +215,62 @@ ReviewTest
 
 These tests run without a database or Spring application context. The existing
 web test separately verifies the public health endpoint.
+
+Repository tests use an in-memory H2 database configured in PostgreSQL
+compatibility mode. They verify generated identifiers, entity relationships,
+cascades, status persistence, derived repository queries, and uniqueness
+constraints.
+
+## Persistence
+
+The application uses Spring Data JPA and Hibernate with the following tables:
+
+```text
+users
+games
+game_copies
+rentals
+rental_items
+reviews
+```
+
+The main relationships are:
+
+```text
+User       1 ─── * Rental
+User       1 ─── * Review
+Game       1 ─── * GameCopy
+Game       1 ─── * Review
+Rental     1 ─── * RentalItem
+RentalItem * ─── 1 GameCopy
+```
+
+Repositories are intentionally simple Spring Data interfaces:
+
+```text
+UserRepository
+GameRepository
+GameCopyRepository
+RentalRepository
+ReviewRepository
+```
+
+For local development, Hibernate currently uses `ddl-auto: update` to maintain
+the PostgreSQL schema. This is a temporary learning-oriented setup. Versioned
+database migrations will replace automatic schema updates before production
+delivery.
+
+The Maven test suite does not require Docker. Persistence tests use the `test`
+profile and recreate an in-memory database for each test context. PostgreSQL 17
+remains the runtime database and can be started with Docker Compose.
+
+To inspect the runtime schema:
+
+```bash
+cd backend
+docker compose up -d
+docker compose exec postgres psql -U moul_cyber -d moul_cyber -c "\dt"
+```
 
 ## Planned capabilities
 
