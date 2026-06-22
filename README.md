@@ -129,11 +129,13 @@ tree contains:
 com.adnane.moulcyber
 ├── api
 │   ├── auth
+│   ├── catalog
 │   ├── error
 │   ├── health
 │   └── user
 ├── application
 │   ├── auth
+│   ├── catalog
 │   └── user
 ├── configuration
 │   └── security
@@ -153,8 +155,9 @@ com.adnane.moulcyber
 └── MoulCyberApplication.java
 ```
 
-Application services orchestrate authentication and current-user use cases.
-Spring Data repositories are grouped by feature under `infra/persistence`.
+Application services orchestrate authentication, current-user, and catalog
+query use cases. Spring Data repositories are grouped by feature under
+`infra/persistence`.
 
 The domain layer owns the business behavior and does not depend on the API,
 configuration, or infrastructure layers. Its entities include Jakarta
@@ -241,6 +244,61 @@ Access rules:
 Validation errors return HTTP `400`, duplicate emails return `409`, invalid
 credentials or tokens return `401`, and insufficient permissions return `403`.
 
+## Public catalog
+
+The game catalog is available without authentication.
+
+List all games:
+
+```bash
+curl http://localhost:8080/api/games
+```
+
+Search by partial title:
+
+```bash
+curl "http://localhost:8080/api/games?title=cyber"
+```
+
+The `title` parameter is optional, trimmed, and case-insensitive. An absent or
+blank value returns the complete catalog. Results are sorted by title and then
+by identifier.
+
+List responses contain summaries:
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Cyber Quest",
+    "rentalPrice": 5.00,
+    "availableCopies": 2
+  }
+]
+```
+
+Read one game:
+
+```bash
+curl http://localhost:8080/api/games/1
+```
+
+Detail responses also include the description:
+
+```json
+{
+  "id": 1,
+  "title": "Cyber Quest",
+  "description": "A cooperative science-fiction adventure.",
+  "rentalPrice": 5.00,
+  "availableCopies": 2
+}
+```
+
+`availableCopies` counts only physical copies with the `AVAILABLE` status.
+Games without an available copy remain visible with a count of zero. An unknown
+identifier returns HTTP `404` with the standard API error format.
+
 ## Core domain
 
 The core domain is implemented with plain Java objects and does not depend on
@@ -253,15 +311,12 @@ Each `GameCopy` belongs to a game and has one of the following statuses:
 ```text
 AVAILABLE
 RENTED
-RETURNED
 LOST
 DAMAGED
 ```
 
-Only an available copy can be rented. A rented copy can be returned, while
-rented, returned, lost, and damaged copies cannot be rented again. A returned
-copy remains in the `RETURNED` state until a separate inventory operation makes
-it available again.
+Only an available copy can be rented. Returning a rented copy makes it
+`AVAILABLE` again. Lost and damaged copies cannot be rented or returned.
 
 ### Rentals
 
