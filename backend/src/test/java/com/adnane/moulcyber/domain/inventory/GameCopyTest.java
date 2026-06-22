@@ -62,13 +62,13 @@ class GameCopyTest {
     }
 
     @Test
-    void rentedCopyCanBeMarkedAsReturned() {
+    void returnedCopyBecomesAvailableAgain() {
         GameCopy copy = new GameCopy(game);
         copy.rent();
 
         copy.markAsReturned();
 
-        assertThat(copy.getStatus()).isEqualTo(GameCopyStatus.RETURNED);
+        assertThat(copy.getStatus()).isEqualTo(GameCopyStatus.AVAILABLE);
     }
 
     @Test
@@ -78,5 +78,25 @@ class GameCopyTest {
         assertThatThrownBy(copy::markAsReturned)
                 .isInstanceOf(InvalidGameCopyStatusException.class)
                 .hasMessageContaining("AVAILABLE");
+    }
+
+    @Test
+    void lostCopyCannotBeMarkedAsReturned() {
+        GameCopy copy = new GameCopy(game);
+        copy.markAsLost();
+
+        assertThatThrownBy(copy::markAsReturned)
+                .isInstanceOf(InvalidGameCopyStatusException.class)
+                .hasMessageContaining("LOST");
+    }
+
+    @Test
+    void damagedCopyCannotBeMarkedAsReturned() {
+        GameCopy copy = new GameCopy(game);
+        copy.markAsDamaged();
+
+        assertThatThrownBy(copy::markAsReturned)
+                .isInstanceOf(InvalidGameCopyStatusException.class)
+                .hasMessageContaining("DAMAGED");
     }
 }

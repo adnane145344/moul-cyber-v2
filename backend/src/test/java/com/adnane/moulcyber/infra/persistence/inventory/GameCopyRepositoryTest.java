@@ -61,7 +61,7 @@ class GameCopyRepositoryTest {
         entityManager.clear();
 
         assertThat(gameCopyRepository.findById(copy.getId()).orElseThrow().getStatus())
-                .isEqualTo(GameCopyStatus.RETURNED);
+                .isEqualTo(GameCopyStatus.AVAILABLE);
     }
 
     private Game game() {

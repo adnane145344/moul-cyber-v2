@@ -51,7 +51,7 @@ public class GameCopy {
 
     public void markAsReturned() {
         requireStatus(GameCopyStatus.RENTED, "return");
-        status = GameCopyStatus.RETURNED;
+        status = GameCopyStatus.AVAILABLE;
     }
 
     public void markAsLost() {
