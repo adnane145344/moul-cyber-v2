@@ -1,8 +1,6 @@
 package com.adnane.moulcyber.domain.rental;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,9 +22,6 @@ import jakarta.persistence.Table;
 @Table(name = "rentals")
 public class Rental {
 
-    private static final BigDecimal DAILY_LATE_FEE = new BigDecimal("2.00");
-    private static final BigDecimal NO_LATE_FEE = new BigDecimal("0.00");
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,9 +35,6 @@ public class Rental {
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
-
-    @Column(name = "returned_date")
-    private LocalDate returnedDate;
 
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RentalItem> items = new ArrayList<>();
@@ -71,33 +63,15 @@ public class Rental {
         items.add(validatedItem);
     }
 
-    public void returnOn(LocalDate returnDate) {
-        LocalDate validatedReturnDate = requireDate(returnDate, "Return date");
-        if (validatedReturnDate.isBefore(startDate)) {
-            throw new InvalidRentalPeriodException("Return date cannot be before start date.");
-        }
-        if (returnedDate != null) {
-            throw new InvalidRentalPeriodException("Rental has already been returned.");
-        }
-        returnedDate = validatedReturnDate;
-    }
-
     public boolean isOverdueOn(LocalDate referenceDate) {
         LocalDate validatedReferenceDate = requireDate(referenceDate, "Reference date");
-        return returnedDate == null && validatedReferenceDate.isAfter(dueDate);
+        return getStatus() == RentalStatus.ACTIVE && validatedReferenceDate.isAfter(dueDate);
     }
 
-    public boolean wasReturnedLate() {
-        return returnedDate != null && returnedDate.isAfter(dueDate);
-    }
-
-    public BigDecimal calculateLateFee() {
-        if (!wasReturnedLate()) {
-            return NO_LATE_FEE;
-        }
-
-        long lateDays = ChronoUnit.DAYS.between(dueDate, returnedDate);
-        return DAILY_LATE_FEE.multiply(BigDecimal.valueOf(lateDays));
+    public RentalStatus getStatus() {
+        return items.stream().anyMatch(RentalItem::isActive)
+                ? RentalStatus.ACTIVE
+                : RentalStatus.COMPLETED;
     }
 
     public Long getId() {
@@ -114,10 +88,6 @@ public class Rental {
 
     public LocalDate getDueDate() {
         return dueDate;
-    }
-
-    public LocalDate getReturnedDate() {
-        return returnedDate;
     }
 
     public List<RentalItem> getItems() {

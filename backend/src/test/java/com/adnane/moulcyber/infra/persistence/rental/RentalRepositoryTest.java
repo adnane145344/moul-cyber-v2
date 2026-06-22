@@ -42,29 +42,36 @@ class RentalRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    void canPersistRentalWithItemsAndReturnDate() {
+    void canPersistRentalWithProcessedItem() {
         User customer = userRepository.saveAndFlush(customer());
         GameCopy copy = savedCopy();
         Rental rental = new Rental(
                 customer,
                 LocalDate.of(2026, 6, 1),
                 LocalDate.of(2026, 6, 8));
-        rental.addItem(new RentalItem(copy));
-        rental.returnOn(LocalDate.of(2026, 6, 10));
+        RentalItem item = new RentalItem(copy, copy.getGame().getRentalPrice());
+        rental.addItem(item);
+        copy.rent();
+        item.returnOn(LocalDate.of(2026, 6, 10));
 
         Rental savedRental = rentalRepository.saveAndFlush(rental);
         Long rentalId = savedRental.getId();
         entityManager.clear();
 
         Rental reloadedRental = rentalRepository.findById(rentalId).orElseThrow();
-        assertThat(reloadedRental.getReturnedDate()).isEqualTo(LocalDate.of(2026, 6, 10));
-        assertThat(reloadedRental.calculateLateFee()).isEqualByComparingTo("4.00");
+        assertThat(reloadedRental.getStatus()).isEqualTo(
+                com.adnane.moulcyber.domain.rental.RentalStatus.COMPLETED);
         assertThat(reloadedRental.getItems())
                 .singleElement()
-                .satisfies(item -> {
-                    assertThat(item.getId()).isNotNull();
-                    assertThat(item.getGameCopy().getId()).isEqualTo(copy.getId());
-                    assertThat(item.getRental().getId()).isEqualTo(rentalId);
+                .satisfies(reloadedItem -> {
+                    assertThat(reloadedItem.getId()).isNotNull();
+                    assertThat(reloadedItem.getGameCopy().getId()).isEqualTo(copy.getId());
+                    assertThat(reloadedItem.getRental().getId()).isEqualTo(rentalId);
+                    assertThat(reloadedItem.getStatus()).isEqualTo(
+                            com.adnane.moulcyber.domain.rental.RentalItemStatus.LATE_RETURNED);
+                    assertThat(reloadedItem.getProcessedDate()).isEqualTo(LocalDate.of(2026, 6, 10));
+                    assertThat(reloadedItem.getRentalPrice()).isEqualByComparingTo("5.00");
+                    assertThat(reloadedItem.getLateFee()).isEqualByComparingTo("4.00");
                 });
     }
 
