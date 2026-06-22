@@ -2,14 +2,22 @@ package com.adnane.moulcyber.infra.persistence.inventory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.adnane.moulcyber.domain.inventory.GameCopy;
 import com.adnane.moulcyber.domain.inventory.GameCopyStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface GameCopyRepository extends JpaRepository<GameCopy, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<GameCopy> findFirstByGameIdAndStatusOrderByIdAsc(
+            Long gameId,
+            GameCopyStatus status);
 
     List<GameCopy> findByGameIdAndStatus(Long gameId, GameCopyStatus status);
 

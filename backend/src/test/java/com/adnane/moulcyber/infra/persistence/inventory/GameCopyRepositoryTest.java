@@ -86,6 +86,21 @@ class GameCopyRepositoryTest {
                 });
     }
 
+    @Test
+    void lockedSelectionReturnsFirstAvailableCopyOnly() {
+        Game game = gameRepository.saveAndFlush(game("Rental Lock Game"));
+        GameCopy firstAvailable = gameCopyRepository.save(new GameCopy(game));
+        gameCopyRepository.save(new GameCopy(game));
+        gameCopyRepository.save(copyWithStatus(game, GameCopyStatus.RENTED));
+        gameCopyRepository.save(copyWithStatus(game, GameCopyStatus.LOST));
+        gameCopyRepository.saveAndFlush(copyWithStatus(game, GameCopyStatus.DAMAGED));
+
+        assertThat(gameCopyRepository.findFirstByGameIdAndStatusOrderByIdAsc(
+                game.getId(), GameCopyStatus.AVAILABLE))
+                .hasValueSatisfying(copy ->
+                        assertThat(copy.getId()).isEqualTo(firstAvailable.getId()));
+    }
+
     private Game game() {
         return game("Cyber Quest");
     }

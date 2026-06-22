@@ -88,7 +88,7 @@ class RentalRepositoryTest {
                 LocalDate.of(2026, 6, 8)));
 
         assertThat(rentalRepository.findByUserId(customer.getId())).hasSize(2);
-        assertThat(rentalRepository.findByUserIdOrderByStartDateDesc(customer.getId()))
+        assertThat(rentalRepository.findDistinctByUserIdOrderByStartDateDescIdDesc(customer.getId()))
                 .extracting(Rental::getStartDate)
                 .containsExactly(LocalDate.of(2026, 6, 1), LocalDate.of(2026, 5, 1));
     }
