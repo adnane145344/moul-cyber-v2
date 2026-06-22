@@ -12,6 +12,8 @@ import com.adnane.moulcyber.application.rental.RentalNotFoundException;
 import com.adnane.moulcyber.application.rental.RentalItemAlreadyProcessedException;
 import com.adnane.moulcyber.application.rental.RentalItemNotFoundException;
 import com.adnane.moulcyber.application.user.UserNotFoundException;
+import com.adnane.moulcyber.application.user.InvalidCurrentPasswordException;
+import com.adnane.moulcyber.application.user.PasswordReuseException;
 import com.adnane.moulcyber.application.review.DuplicateReviewException;
 import com.adnane.moulcyber.application.review.ReviewEligibilityException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,6 +88,13 @@ public class GlobalExceptionHandler {
             ReviewEligibilityException exception,
             HttpServletRequest request) {
         return error(HttpStatus.FORBIDDEN, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler({InvalidCurrentPasswordException.class, PasswordReuseException.class})
+    ResponseEntity<ApiError> handlePasswordChange(
+            RuntimeException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, exception.getMessage(), request, Map.of());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

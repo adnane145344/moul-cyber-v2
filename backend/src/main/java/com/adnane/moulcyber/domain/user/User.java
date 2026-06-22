@@ -44,8 +44,8 @@ public class User {
 
     public User(Long id, String firstName, String lastName, String email, String passwordHash, Role role) {
         this.id = id;
-        this.firstName = requireText(firstName, "First name");
-        this.lastName = requireText(lastName, "Last name");
+        this.firstName = requireName(firstName, "First name");
+        this.lastName = requireName(lastName, "Last name");
         this.email = requireText(email, "Email");
         this.passwordHash = requireText(passwordHash, "Password hash");
         this.role = Objects.requireNonNull(role, "Role is required.");
@@ -73,6 +73,23 @@ public class User {
 
     public Role getRole() {
         return role;
+    }
+
+    public void updateProfile(String firstName, String lastName) {
+        this.firstName = requireName(firstName, "First name");
+        this.lastName = requireName(lastName, "Last name");
+    }
+
+    public void changePasswordHash(String passwordHash) {
+        this.passwordHash = requireText(passwordHash, "Password hash");
+    }
+
+    private static String requireName(String value, String fieldName) {
+        String name = requireText(value, fieldName);
+        if (name.length() > 100) {
+            throw new IllegalArgumentException(fieldName + " must not exceed 100 characters.");
+        }
+        return name;
     }
 
     private static String requireText(String value, String fieldName) {
