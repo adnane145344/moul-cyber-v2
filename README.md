@@ -15,6 +15,7 @@ health endpoint.
 - Spring Web
 - Spring Data JPA and Hibernate
 - Spring Security
+- JSON Web Tokens with JJWT
 - PostgreSQL 17
 - JUnit 5 and Mockito
 - Maven 3.9
@@ -103,6 +104,11 @@ variables. Each variable has a local development default:
 | `DB_USERNAME` | `moul_cyber` |
 | `DB_PASSWORD` | `moul_cyber` |
 | `SERVER_PORT` | `8080` |
+| `JWT_SECRET` | Development-only Base64-encoded secret |
+| `JWT_EXPIRATION` | `1h` |
+
+`JWT_SECRET` must contain a Base64-encoded HMAC key of at least 32 bytes. Replace
+the local default before deploying the application.
 
 ## Backend structure
 
@@ -122,7 +128,13 @@ tree contains:
 ```text
 com.adnane.moulcyber
 ├── api
-│   └── health
+│   ├── auth
+│   ├── error
+│   ├── health
+│   └── user
+├── application
+│   ├── auth
+│   └── user
 ├── configuration
 │   └── security
 ├── domain
@@ -141,18 +153,93 @@ com.adnane.moulcyber
 └── MoulCyberApplication.java
 ```
 
-Application services will be added under `application` when use cases are
-implemented. Spring Data repositories are grouped by feature under
-`infra/persistence`.
+Application services orchestrate authentication and current-user use cases.
+Spring Data repositories are grouped by feature under `infra/persistence`.
 
 The domain layer owns the business behavior and does not depend on the API,
 configuration, or infrastructure layers. Its entities include Jakarta
 Persistence metadata, while their rules remain independent from Spring and
 repository implementations. Higher layers may depend on the domain.
 
-The health endpoint is public. Other API routes require authentication by
-default. Authentication mechanisms and business features will be introduced as
-their corresponding modules are implemented.
+The API uses stateless bearer-token authentication. Passwords are hashed with
+BCrypt and are never included in API responses.
+
+## Authentication
+
+Create a client account:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Adnane",
+    "lastName": "Lardi",
+    "email": "adnane@example.com",
+    "password": "StrongPassword1!"
+  }'
+```
+
+Successful registration returns HTTP `201`:
+
+```json
+{
+  "token": "<jwt>",
+  "userId": 1,
+  "email": "adnane@example.com",
+  "role": "CLIENT"
+}
+```
+
+Sign in:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "adnane@example.com",
+    "password": "StrongPassword1!"
+  }'
+```
+
+Read the authenticated user:
+
+```bash
+curl http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer <jwt>"
+```
+
+The API currently supports two roles:
+
+```text
+CLIENT
+ADMIN
+```
+
+New accounts always receive `CLIENT`. For local development, an administrator
+can be created by registering a normal account and then updating its role:
+
+```bash
+docker compose exec postgres psql -U moul_cyber -d moul_cyber \
+  -c "UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';"
+```
+
+Sign in again after changing the role so the new JWT contains the `ADMIN`
+authority.
+
+Access rules:
+
+| Route | Access |
+| --- | --- |
+| `/api/health` | Public |
+| `/api/auth/register` | Public |
+| `/api/auth/login` | Public |
+| `/api/games/**` | Public |
+| `/api/users/me` | Authenticated |
+| `/api/rentals/**` | Authenticated |
+| `/api/admin/**` | `ADMIN` only |
+
+Validation errors return HTTP `400`, duplicate emails return `409`, invalid
+credentials or tokens return `401`, and insufficient permissions return `403`.
 
 ## Core domain
 
