@@ -2,6 +2,7 @@ package com.adnane.moulcyber.api.review;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 
 import com.adnane.moulcyber.configuration.security.JwtService;
 import com.adnane.moulcyber.domain.catalog.Game;
@@ -142,11 +143,12 @@ class ReviewApiTest {
     private void completeRental() {
         GameCopy copy = gameCopyRepository.saveAndFlush(new GameCopy(game));
         copy.rent();
-        LocalDate startDate = LocalDate.now().minusDays(10);
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        LocalDate startDate = today.minusDays(10);
         Rental rental = new Rental(client, startDate, startDate.plusDays(7));
         RentalItem item = new RentalItem(copy, game.getRentalPrice());
         rental.addItem(item);
-        item.returnOn(LocalDate.now());
+        item.returnOn(today);
         rentalRepository.saveAndFlush(rental);
     }
 

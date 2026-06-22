@@ -74,11 +74,15 @@ class RentalServiceTest {
         when(gameCopyRepository.findFirstByGameIdAndStatusOrderByIdAsc(
                 2L, GameCopyStatus.AVAILABLE)).thenReturn(Optional.of(copy));
         when(rentalRepository.saveAndFlush(any(Rental.class))).thenAnswer(invocation -> {
-            Rental rental = invocation.getArgument(0);
-            return new Rental(10L, rental.getUser(), rental.getStartDate(), rental.getDueDate()) {{
-                addItem(new com.adnane.moulcyber.domain.rental.RentalItem(
-                        22L, copy, game.getRentalPrice()));
-            }};
+            Rental pendingRental = invocation.getArgument(0);
+            Rental savedRental = new Rental(
+                    10L,
+                    pendingRental.getUser(),
+                    pendingRental.getStartDate(),
+                    pendingRental.getDueDate());
+            savedRental.addItem(new com.adnane.moulcyber.domain.rental.RentalItem(
+                    22L, copy, game.getRentalPrice()));
+            return savedRental;
         });
 
         RentalResponse response = rentalService.createRental(
