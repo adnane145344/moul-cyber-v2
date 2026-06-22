@@ -5,7 +5,7 @@ designed to manage a game catalog, physical copies, customer rentals, returns,
 reviews, and administrative inventory operations.
 
 The repository currently provides a tested Spring Boot backend foundation,
-PostgreSQL development environment, modular package structure, and public
+PostgreSQL development environment, layered package structure, and public
 health endpoint.
 
 ## Technology
@@ -106,19 +106,41 @@ variables. Each variable has a local development default:
 
 ## Backend structure
 
-The backend uses feature-oriented packages under `com.adnane.moulcyber`:
+The backend uses a layered architecture under `com.adnane.moulcyber`:
 
-| Package | Responsibility |
+| Layer | Responsibility |
 | --- | --- |
-| `auth` | Authentication use cases |
-| `security` | Security and access-control configuration |
-| `user` | User accounts and customer profiles |
-| `catalog` | Video game catalog |
-| `inventory` | Physical copies and inventory |
-| `rental` | Rentals, returns, and late fees |
-| `review` | Customer reviews |
-| `admin` | Administrative capabilities |
-| `shared` | Shared technical components |
+| `api` | HTTP controllers and request validation |
+| `application` | Application services, DTOs, and object assembly |
+| `domain` | Business models, rules, and domain exceptions |
+| `infra` | Persistence and external-system integrations |
+| `configuration` | Spring and security configuration |
+
+Only layers with implemented responsibilities are present. The current source
+tree contains:
+
+```text
+com.adnane.moulcyber
+├── api
+│   └── health
+├── configuration
+│   └── security
+├── domain
+│   ├── catalog
+│   ├── inventory
+│   ├── rental
+│   ├── review
+│   └── user
+└── MoulCyberApplication.java
+```
+
+Application services will be added under `application` when use cases are
+implemented. Spring Data repositories will be grouped by feature under
+`infra/persistence`.
+
+The domain layer contains plain Java and does not depend on the API,
+configuration, or infrastructure layers. Higher layers may depend on the
+domain, keeping business rules independent from framework concerns.
 
 The health endpoint is public. Other API routes require authentication by
 default. Authentication mechanisms and business features will be introduced as
