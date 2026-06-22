@@ -3,7 +3,6 @@ package com.adnane.moulcyber.application.rental;
 import java.time.Clock;
 import java.time.LocalDate;
 
-import com.adnane.moulcyber.domain.rental.InvalidRentalItemStatusException;
 import com.adnane.moulcyber.domain.rental.RentalItem;
 import com.adnane.moulcyber.infra.persistence.rental.RentalItemRepository;
 import org.springframework.stereotype.Service;
