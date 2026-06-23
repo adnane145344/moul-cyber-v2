@@ -81,6 +81,7 @@ The application reads its runtime configuration from environment variables:
 | `SERVER_PORT` | `8080` |
 | `JWT_SECRET` | Required |
 | `JWT_EXPIRATION` | `1h` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` |
 | `FLYWAY_BASELINE_ON_MIGRATE` | `false` |
 
 `JWT_SECRET` must be a Base64-encoded secret of at least 32 bytes.
@@ -221,6 +222,27 @@ http://localhost:8080/swagger-ui.html
 
 The documentation endpoints are public so the API can be explored easily during
 local development.
+
+## Frontend integration
+
+Cross-origin browser requests are enabled through the `CORS_ALLOWED_ORIGINS`
+environment variable. The default value is intended for a local Vite frontend:
+
+```text
+http://localhost:5173
+```
+
+For another frontend origin, set a comma-separated list:
+
+```powershell
+$env:CORS_ALLOWED_ORIGINS="http://localhost:5173,http://localhost:3000"
+```
+
+The API expects JWTs in the `Authorization` header:
+
+```text
+Authorization: Bearer <jwt>
+```
 
 ## Authentication
 

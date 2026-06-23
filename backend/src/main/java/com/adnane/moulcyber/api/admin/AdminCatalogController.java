@@ -10,6 +10,7 @@ import com.adnane.moulcyber.application.admin.AdminInventoryService;
 import com.adnane.moulcyber.application.admin.CreateGameRequest;
 import com.adnane.moulcyber.application.admin.InventoryGameResponse;
 import com.adnane.moulcyber.application.admin.UpdateGameRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Admin Catalog", description = "Administrative catalog and inventory management endpoints.")
 @RequestMapping("/api/admin")
 public class AdminCatalogController {
 

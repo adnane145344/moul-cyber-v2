@@ -6,6 +6,7 @@ import com.adnane.moulcyber.application.user.ChangePasswordRequest;
 import com.adnane.moulcyber.application.user.UpdateProfileRequest;
 import com.adnane.moulcyber.application.user.UserProfileService;
 import com.adnane.moulcyber.configuration.security.UserPrincipal;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Users", description = "Authenticated current user profile endpoints.")
 @RequestMapping("/api/users")
 public class CurrentUserController {
 

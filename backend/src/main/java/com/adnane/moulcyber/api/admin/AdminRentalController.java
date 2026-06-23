@@ -5,6 +5,7 @@ import com.adnane.moulcyber.application.admin.AdminRentalFilter;
 import com.adnane.moulcyber.application.admin.AdminRentalService;
 import com.adnane.moulcyber.application.admin.AdminRentalSummaryResponse;
 import com.adnane.moulcyber.application.shared.PageResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
+@Tag(name = "Admin Rentals", description = "Administrative rental monitoring endpoints.")
 @RequestMapping("/api/admin/rentals")
 public class AdminRentalController {
 

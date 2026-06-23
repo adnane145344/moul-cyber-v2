@@ -7,6 +7,7 @@ import com.adnane.moulcyber.application.rental.RentalResponse;
 import com.adnane.moulcyber.application.rental.RentalService;
 import com.adnane.moulcyber.application.rental.RentalSummaryResponse;
 import com.adnane.moulcyber.configuration.security.UserPrincipal;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Rentals", description = "Authenticated rental creation and customer rental history.")
 @RequestMapping("/api/rentals")
 public class RentalController {
 

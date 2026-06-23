@@ -5,6 +5,7 @@ import java.util.List;
 import com.adnane.moulcyber.application.catalog.CatalogService;
 import com.adnane.moulcyber.application.catalog.GameDetailsResponse;
 import com.adnane.moulcyber.application.catalog.GameSummaryResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Catalog", description = "Public game catalog browsing endpoints.")
 @RequestMapping("/api/games")
 public class GameCatalogController {
 

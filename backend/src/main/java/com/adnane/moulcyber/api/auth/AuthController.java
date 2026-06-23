@@ -4,6 +4,7 @@ import com.adnane.moulcyber.application.auth.AuthService;
 import com.adnane.moulcyber.application.auth.AuthResponse;
 import com.adnane.moulcyber.application.auth.LoginRequest;
 import com.adnane.moulcyber.application.auth.RegisterRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Authentication", description = "Registration and login endpoints.")
 @RequestMapping("/api/auth")
 public class AuthController {
 

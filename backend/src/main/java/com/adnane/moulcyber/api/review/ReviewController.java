@@ -6,6 +6,7 @@ import com.adnane.moulcyber.application.review.CreateReviewRequest;
 import com.adnane.moulcyber.application.review.ReviewResponse;
 import com.adnane.moulcyber.application.review.ReviewService;
 import com.adnane.moulcyber.configuration.security.UserPrincipal;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Reviews", description = "Public review reading and authenticated review creation.")
 @RequestMapping("/api/games/{gameId}/reviews")
 public class ReviewController {
 
