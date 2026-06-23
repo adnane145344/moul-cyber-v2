@@ -9,8 +9,10 @@ spring:
     password: ${DB_PASSWORD:moul_cyber}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
+  flyway:
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
 
 server:
   port: ${SERVER_PORT:8080}
