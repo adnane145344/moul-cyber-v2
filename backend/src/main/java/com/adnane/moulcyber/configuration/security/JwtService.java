@@ -24,8 +24,8 @@ public class JwtService {
     public JwtService(
             @Value("${security.jwt.secret}") String encodedSecret,
             @Value("${security.jwt.expiration:1h}") Duration expiration) {
-        this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(encodedSecret));
-        this.expiration = expiration;
+        this.secretKey = Keys.hmacShaKeyFor(decodeAndValidateSecret(encodedSecret));
+        this.expiration = validateExpiration(expiration);
     }
 
     public String generateToken(User user) {
@@ -55,5 +55,29 @@ public class JwtService {
                 userId.longValue(),
                 claims.getSubject(),
                 Role.valueOf(role));
+    }
+
+    private byte[] decodeAndValidateSecret(String encodedSecret) {
+        if (encodedSecret == null || encodedSecret.isBlank()) {
+            throw new IllegalStateException("JWT secret must be configured.");
+        }
+
+        byte[] secret;
+        try {
+            secret = Decoders.BASE64.decode(encodedSecret);
+        } catch (RuntimeException exception) {
+            throw new IllegalStateException("JWT secret must be valid Base64.", exception);
+        }
+        if (secret.length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 bytes.");
+        }
+        return secret;
+    }
+
+    private Duration validateExpiration(Duration expiration) {
+        if (expiration == null || expiration.isZero() || expiration.isNegative()) {
+            throw new IllegalStateException("JWT expiration must be positive.");
+        }
+        return expiration;
     }
 }

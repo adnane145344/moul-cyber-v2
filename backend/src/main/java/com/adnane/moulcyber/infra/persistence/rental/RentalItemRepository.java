@@ -4,12 +4,15 @@ import java.util.Optional;
 
 import com.adnane.moulcyber.domain.rental.RentalItem;
 import com.adnane.moulcyber.domain.rental.RentalItemStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface RentalItemRepository extends JpaRepository<RentalItem, Long> {
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select item
             from RentalItem item

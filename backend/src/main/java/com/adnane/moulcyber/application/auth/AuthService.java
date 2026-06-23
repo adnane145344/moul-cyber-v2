@@ -6,6 +6,7 @@ import com.adnane.moulcyber.configuration.security.JwtService;
 import com.adnane.moulcyber.domain.user.Role;
 import com.adnane.moulcyber.domain.user.User;
 import com.adnane.moulcyber.infra.persistence.user.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +40,7 @@ public class AuthService {
                 email,
                 passwordEncoder.encode(request.password()),
                 Role.CLIENT);
-        User savedUser = userRepository.save(user);
+        User savedUser = saveUser(user);
 
         return responseFor(savedUser);
     }
@@ -63,6 +64,14 @@ public class AuthService {
                 user.getId(),
                 user.getEmail(),
                 user.getRole());
+    }
+
+    private User saveUser(User user) {
+        try {
+            return userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException exception) {
+            throw new EmailAlreadyUsedException();
+        }
     }
 
     private String normalizeEmail(String email) {

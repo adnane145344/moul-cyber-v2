@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +47,7 @@ class AuthServiceTest {
                 "Adnane", "Lardi", " ADNANE@example.com ", "StrongPassword1!");
         when(userRepository.existsByEmail("adnane@example.com")).thenReturn(false);
         when(passwordEncoder.encode("StrongPassword1!")).thenReturn("encoded-password");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return new User(42L, user.getFirstName(), user.getLastName(), user.getEmail(),
                     user.getPasswordHash(), user.getRole());
@@ -56,7 +57,7 @@ class AuthServiceTest {
         AuthResponse response = authService.register(request);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
+        verify(userRepository).saveAndFlush(userCaptor.capture());
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getEmail()).isEqualTo("adnane@example.com");
         assertThat(savedUser.getPasswordHash()).isEqualTo("encoded-password");
@@ -74,8 +75,21 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(EmailAlreadyUsedException.class);
 
-        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).saveAndFlush(any());
         verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void registerConvertsConcurrentEmailCollisionToBusinessError() {
+        RegisterRequest request = new RegisterRequest(
+                "Adnane", "Lardi", "adnane@example.com", "StrongPassword1!");
+        when(userRepository.existsByEmail("adnane@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("StrongPassword1!")).thenReturn("encoded-password");
+        when(userRepository.saveAndFlush(any(User.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate email"));
+
+        assertThatThrownBy(() -> authService.register(request))
+                .isInstanceOf(EmailAlreadyUsedException.class);
     }
 
     @Test

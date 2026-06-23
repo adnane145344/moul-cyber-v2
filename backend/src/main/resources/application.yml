@@ -19,5 +19,5 @@ server:
 
 security:
   jwt:
-    secret: ${JWT_SECRET:bW91bC1jeWJlci1sb2NhbC1qd3Qtc2VjcmV0LWNoYW5nZS1tZS1iZWZvcmUtcHJvZHVjdGlvbg==}
+    secret: ${JWT_SECRET:}
     expiration: ${JWT_EXPIRATION:1h}
