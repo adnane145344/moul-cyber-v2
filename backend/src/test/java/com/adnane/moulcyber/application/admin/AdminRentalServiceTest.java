@@ -10,13 +10,18 @@ import java.util.Optional;
 
 import com.adnane.moulcyber.application.rental.RentalAssembler;
 import com.adnane.moulcyber.application.rental.RentalNotFoundException;
+import com.adnane.moulcyber.application.shared.PageResponse;
 import com.adnane.moulcyber.domain.catalog.Game;
 import com.adnane.moulcyber.domain.inventory.GameCopy;
+import com.adnane.moulcyber.domain.rental.RentalItemStatus;
 import com.adnane.moulcyber.domain.rental.Rental;
 import com.adnane.moulcyber.domain.rental.RentalItem;
 import com.adnane.moulcyber.domain.user.Role;
 import com.adnane.moulcyber.domain.user.User;
 import com.adnane.moulcyber.infra.persistence.rental.RentalRepository;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,24 +60,43 @@ class AdminRentalServiceTest {
     }
 
     @Test
-    void filtersActiveOverdueAndCompletedRentals() {
+    void returnsPagedRentalsInRepositoryOrder() {
         Rental active = rental(10L, TODAY, TODAY.plusDays(7));
         Rental overdue = rental(11L, TODAY.minusDays(10), TODAY.minusDays(3));
-        Rental completed = rental(12L, TODAY.minusDays(9), TODAY.minusDays(2));
-        completed.getItems().getFirst().returnOn(TODAY.minusDays(2));
-        when(rentalRepository.findDistinctByOrderByStartDateDescIdDesc())
-                .thenReturn(List.of(active, overdue, completed));
+        Pageable pageable = PageRequest.of(0, 2);
+        when(rentalRepository.findAllIds(pageable))
+                .thenReturn(new PageImpl<>(List.of(11L, 10L), pageable, 3));
+        when(rentalRepository.findDetailedByIdIn(List.of(11L, 10L)))
+                .thenReturn(List.of(active, overdue));
 
-        assertThat(service.findRentals(AdminRentalFilter.ACTIVE))
+        PageResponse<AdminRentalSummaryResponse> response = service.findRentals(null, pageable);
+
+        assertThat(response.content())
                 .extracting(AdminRentalSummaryResponse::id)
-                .containsExactly(10L);
-        assertThat(service.findRentals(AdminRentalFilter.OVERDUE))
-                .extracting(AdminRentalSummaryResponse::id)
-                .containsExactly(11L);
-        assertThat(service.findRentals(AdminRentalFilter.COMPLETED))
-                .extracting(AdminRentalSummaryResponse::id)
-                .containsExactly(12L);
-        assertThat(service.findRentals(null)).hasSize(3);
+                .containsExactly(11L, 10L);
+        assertThat(response.page()).isZero();
+        assertThat(response.size()).isEqualTo(2);
+        assertThat(response.totalElements()).isEqualTo(3);
+        assertThat(response.totalPages()).isEqualTo(2);
+    }
+
+    @Test
+    void delegatesActiveOverdueAndCompletedFilteringToRepository() {
+        Pageable pageable = PageRequest.of(1, 5);
+        when(rentalRepository.findActiveIds(RentalItemStatus.ACTIVE, TODAY, pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+        when(rentalRepository.findOverdueIds(RentalItemStatus.ACTIVE, TODAY, pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+        when(rentalRepository.findCompletedIds(RentalItemStatus.ACTIVE, pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        service.findRentals(AdminRentalFilter.ACTIVE, pageable);
+        service.findRentals(AdminRentalFilter.OVERDUE, pageable);
+        service.findRentals(AdminRentalFilter.COMPLETED, pageable);
+
+        verify(rentalRepository).findActiveIds(RentalItemStatus.ACTIVE, TODAY, pageable);
+        verify(rentalRepository).findOverdueIds(RentalItemStatus.ACTIVE, TODAY, pageable);
+        verify(rentalRepository).findCompletedIds(RentalItemStatus.ACTIVE, pageable);
     }
 
     @Test

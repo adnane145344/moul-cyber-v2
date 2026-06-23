@@ -16,6 +16,7 @@ import com.adnane.moulcyber.application.user.InvalidCurrentPasswordException;
 import com.adnane.moulcyber.application.user.PasswordReuseException;
 import com.adnane.moulcyber.application.review.DuplicateReviewException;
 import com.adnane.moulcyber.application.review.ReviewEligibilityException;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -102,6 +103,13 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request) {
         return error(HttpStatus.BAD_REQUEST, "Invalid request parameter.", request, Map.of());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    ResponseEntity<ApiError> handleConstraintViolation(
+            ConstraintViolationException exception,
+            HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "Request validation failed.", request, Map.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

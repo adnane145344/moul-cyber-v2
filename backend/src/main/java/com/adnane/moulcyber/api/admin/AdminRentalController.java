@@ -1,11 +1,15 @@
 package com.adnane.moulcyber.api.admin;
 
-import java.util.List;
-
 import com.adnane.moulcyber.application.admin.AdminRentalDetailsResponse;
 import com.adnane.moulcyber.application.admin.AdminRentalFilter;
 import com.adnane.moulcyber.application.admin.AdminRentalService;
 import com.adnane.moulcyber.application.admin.AdminRentalSummaryResponse;
+import com.adnane.moulcyber.application.shared.PageResponse;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @RequestMapping("/api/admin/rentals")
 public class AdminRentalController {
 
@@ -23,9 +28,12 @@ public class AdminRentalController {
     }
 
     @GetMapping
-    public List<AdminRentalSummaryResponse> rentals(
-            @RequestParam(required = false) AdminRentalFilter status) {
-        return rentalService.findRentals(status);
+    public PageResponse<AdminRentalSummaryResponse> rentals(
+            @RequestParam(required = false) AdminRentalFilter status,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return rentalService.findRentals(status, pageable);
     }
 
     @GetMapping("/{rentalId}")

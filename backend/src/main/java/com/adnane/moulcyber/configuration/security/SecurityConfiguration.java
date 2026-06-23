@@ -33,6 +33,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/health", "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/games", "/api/games/**").permitAll()
                         .requestMatchers("/api/admin", "/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

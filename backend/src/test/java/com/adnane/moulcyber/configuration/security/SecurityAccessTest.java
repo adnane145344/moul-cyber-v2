@@ -35,6 +35,15 @@ class SecurityAccessTest extends PostgreSQLContainerTest {
     }
 
     @Test
+    void publicCanAccessOpenApiDocumentation() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/swagger-ui.html"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
     void anonymousCannotAccessRentals() throws Exception {
         mockMvc.perform(get("/api/rentals"))
                 .andExpect(status().isUnauthorized());

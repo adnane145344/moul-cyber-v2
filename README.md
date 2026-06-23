@@ -1,5 +1,7 @@
 # Moul Cyber
 
+[![Backend CI](https://github.com/adnane145344/moul-cyber-v2/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/adnane145344/moul-cyber-v2/actions/workflows/backend-ci.yml)
+
 Moul Cyber is a Spring Boot backend for video game rentals and inventory
 management. It provides a public game catalog, customer authentication,
 rentals, returns, reviews, user profile management, and administrative catalog
@@ -202,6 +204,23 @@ backend/target/
 
 GitHub Actions runs the backend test suite on pushes and pull requests targeting
 `main`.
+
+## API documentation
+
+OpenAPI documentation is generated at runtime:
+
+```text
+http://localhost:8080/v3/api-docs
+```
+
+Swagger UI is available at:
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+The documentation endpoints are public so the API can be explored easily during
+local development.
 
 ## Authentication
 
@@ -468,17 +487,45 @@ curl http://localhost:8080/api/admin/inventory \
 Read rentals:
 
 ```bash
-curl http://localhost:8080/api/admin/rentals \
+curl "http://localhost:8080/api/admin/rentals?page=0&size=20" \
   -H "Authorization: Bearer <admin-jwt>"
 
-curl "http://localhost:8080/api/admin/rentals?status=OVERDUE" \
+curl "http://localhost:8080/api/admin/rentals?status=OVERDUE&page=0&size=20" \
   -H "Authorization: Bearer <admin-jwt>"
 
 curl http://localhost:8080/api/admin/rentals/10 \
   -H "Authorization: Bearer <admin-jwt>"
 ```
 
-Supported rental filters are `ACTIVE`, `OVERDUE`, and `COMPLETED`.
+Supported rental filters are `ACTIVE`, `OVERDUE`, and `COMPLETED`. List results
+are paginated with `page` and `size`; `page` starts at `0`, and `size` accepts
+values from `1` to `100`.
+
+Rental list response:
+
+```json
+{
+  "content": [
+    {
+      "id": 10,
+      "userId": 1,
+      "customerName": "Client User",
+      "customerEmail": "client@example.com",
+      "status": "ACTIVE",
+      "overdue": false,
+      "startDate": "2026-06-23",
+      "dueDate": "2026-06-30",
+      "itemCount": 1
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1,
+  "first": true,
+  "last": true
+}
+```
 
 ## User profile
 

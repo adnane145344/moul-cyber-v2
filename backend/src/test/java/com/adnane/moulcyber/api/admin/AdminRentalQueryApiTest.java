@@ -72,29 +72,33 @@ class AdminRentalQueryApiTest extends PostgreSQLContainerTest {
         mockMvc.perform(get("/api/admin/rentals")
                         .header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(1));
 
         mockMvc.perform(get("/api/admin/rentals")
                         .param("status", "ACTIVE")
                         .header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(active.getId()))
-                .andExpect(jsonPath("$[0].overdue").value(false));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(active.getId()))
+                .andExpect(jsonPath("$.content[0].overdue").value(false));
 
         mockMvc.perform(get("/api/admin/rentals")
                         .param("status", "OVERDUE")
                         .header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(overdue.getId()))
-                .andExpect(jsonPath("$[0].overdue").value(true));
+                .andExpect(jsonPath("$.content[0].id").value(overdue.getId()))
+                .andExpect(jsonPath("$.content[0].overdue").value(true));
 
         mockMvc.perform(get("/api/admin/rentals")
                         .param("status", "COMPLETED")
                         .header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(completed.getId()))
-                .andExpect(jsonPath("$[0].status").value("COMPLETED"));
+                .andExpect(jsonPath("$.content[0].id").value(completed.getId()))
+                .andExpect(jsonPath("$.content[0].status").value("COMPLETED"));
 
         mockMvc.perform(get("/api/admin/rentals/{rentalId}", active.getId())
                         .header("Authorization", bearer(admin)))
@@ -106,12 +110,50 @@ class AdminRentalQueryApiTest extends PostgreSQLContainerTest {
     }
 
     @Test
+    void adminCanPageRentals() throws Exception {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        Rental first = saveRental(today, today.plusDays(7), false);
+        Rental second = saveRental(today.minusDays(1), today.plusDays(6), false);
+        saveRental(today.minusDays(2), today.plusDays(5), false);
+
+        mockMvc.perform(get("/api/admin/rentals")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].id").value(first.getId()))
+                .andExpect(jsonPath("$.content[1].id").value(second.getId()))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(false));
+
+        mockMvc.perform(get("/api/admin/rentals")
+                        .param("page", "1")
+                        .param("size", "2")
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.last").value(true));
+    }
+
+    @Test
     void invalidFilterAndMissingRentalReturnApiErrors() throws Exception {
         mockMvc.perform(get("/api/admin/rentals")
                         .param("status", "UNKNOWN")
                         .header("Authorization", bearer(admin)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid request parameter."));
+
+        mockMvc.perform(get("/api/admin/rentals")
+                        .param("size", "101")
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Request validation failed."));
 
         mockMvc.perform(get("/api/admin/rentals/999999")
                         .header("Authorization", bearer(admin)))
