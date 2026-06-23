@@ -6,6 +6,7 @@ import com.adnane.moulcyber.domain.catalog.Game;
 import com.adnane.moulcyber.domain.inventory.GameCopy;
 import com.adnane.moulcyber.infra.persistence.catalog.GameRepository;
 import com.adnane.moulcyber.infra.persistence.inventory.GameCopyRepository;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class GameCatalogApiTest {
+class GameCatalogApiTest extends PostgreSQLContainerTest {
 
     @Autowired
     private MockMvc mockMvc;

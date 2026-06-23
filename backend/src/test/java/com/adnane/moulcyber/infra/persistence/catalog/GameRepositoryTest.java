@@ -3,6 +3,7 @@ package com.adnane.moulcyber.infra.persistence.catalog;
 import java.math.BigDecimal;
 
 import com.adnane.moulcyber.domain.catalog.Game;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-class GameRepositoryTest {
+class GameRepositoryTest extends PostgreSQLContainerTest {
 
     @Autowired
     private GameRepository gameRepository;

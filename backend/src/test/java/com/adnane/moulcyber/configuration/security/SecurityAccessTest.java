@@ -2,6 +2,7 @@ package com.adnane.moulcyber.configuration.security;
 
 import com.adnane.moulcyber.domain.user.Role;
 import com.adnane.moulcyber.domain.user.User;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(SecurityAccessTest.TestEndpoints.class)
-class SecurityAccessTest {
+class SecurityAccessTest extends PostgreSQLContainerTest {
 
     @Autowired
     private MockMvc mockMvc;

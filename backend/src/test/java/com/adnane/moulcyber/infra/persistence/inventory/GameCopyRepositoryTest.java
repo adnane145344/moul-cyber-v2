@@ -7,6 +7,7 @@ import com.adnane.moulcyber.domain.catalog.Game;
 import com.adnane.moulcyber.domain.inventory.GameCopy;
 import com.adnane.moulcyber.domain.inventory.GameCopyStatus;
 import com.adnane.moulcyber.infra.persistence.catalog.GameRepository;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-class GameCopyRepositoryTest {
+class GameCopyRepositoryTest extends PostgreSQLContainerTest {
 
     @Autowired
     private GameCopyRepository gameCopyRepository;

@@ -15,6 +15,7 @@ import com.adnane.moulcyber.infra.persistence.catalog.GameRepository;
 import com.adnane.moulcyber.infra.persistence.inventory.GameCopyRepository;
 import com.adnane.moulcyber.infra.persistence.rental.RentalRepository;
 import com.adnane.moulcyber.infra.persistence.user.UserRepository;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class AdminRentalQueryApiTest {
+class AdminRentalQueryApiTest extends PostgreSQLContainerTest {
 
     @Autowired
     private MockMvc mockMvc;

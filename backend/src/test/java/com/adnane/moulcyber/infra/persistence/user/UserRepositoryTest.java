@@ -2,6 +2,7 @@ package com.adnane.moulcyber.infra.persistence.user;
 
 import com.adnane.moulcyber.domain.user.Role;
 import com.adnane.moulcyber.domain.user.User;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -15,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-class UserRepositoryTest {
+class UserRepositoryTest extends PostgreSQLContainerTest {
 
     @Autowired
     private UserRepository userRepository;

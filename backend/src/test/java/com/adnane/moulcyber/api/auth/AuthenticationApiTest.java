@@ -1,6 +1,7 @@
 package com.adnane.moulcyber.api.auth;
 
 import com.adnane.moulcyber.infra.persistence.user.UserRepository;
+import com.adnane.moulcyber.support.PostgreSQLContainerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class AuthenticationApiTest {
+class AuthenticationApiTest extends PostgreSQLContainerTest {
 
     @Autowired
     private MockMvc mockMvc;
